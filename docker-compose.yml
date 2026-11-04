@@ -3,31 +3,41 @@ services:
     image: timescale/timescaledb:latest-pg16
     environment:
       POSTGRES_USER: tvdi
-      POSTGRES_PASSWORD: tvdi
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tvdi-dev}
       POSTGRES_DB: tvdi
     ports: ["5432:5432"]
     volumes: [pgdata:/var/lib/postgresql/data]
 
   mosquitto:
     image: eclipse-mosquitto:2
-    ports: ["1883:1883", "9001:9001"]
+    ports: ["1883:1883"]
     volumes:
       - ./mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    command: sh -c "mosquitto_passwd -b -c /tmp/pw tvdi $${MQTT_PASSWORD:-tvdi-dev} && exec mosquitto -c /mosquitto/config/mosquitto.conf"
 
   api:
     build: .
     ports: ["8000:8000"]
-    env_file: .env
+    environment:
+      TVDI_ENV: development
+      DATABASE_URL: postgresql+asyncpg://tvdi:${POSTGRES_PASSWORD:-tvdi-dev}@postgres:5432/tvdi
+      MQTT_HOST: mosquitto
+      MQTT_USERNAME: tvdi
+      MQTT_PASSWORD: ${MQTT_PASSWORD:-tvdi-dev}
+      JWT_SECRET: ${JWT_SECRET:-dev-only-change-before-production}
+      REJECT_ENABLED: "false"
     depends_on: [postgres, mosquitto]
     volumes:
       - ./models:/app/models
-      - ./edge_buffer.sqlite:/app/edge_buffer.sqlite
-      - ./audit.sqlite:/app/audit.sqlite
+      - ./data:/app/data
 
   worker:
     build: .
     command: python worker.py
-    env_file: .env
+    environment:
+      MQTT_HOST: mosquitto
+      MQTT_USERNAME: tvdi
+      MQTT_PASSWORD: ${MQTT_PASSWORD:-tvdi-dev}
     depends_on: [mosquitto]
 
   prometheus:
@@ -39,7 +49,7 @@ services:
     image: grafana/grafana
     ports: ["3000:3000"]
     environment:
-      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-change-me}
 
 volumes:
   pgdata:
