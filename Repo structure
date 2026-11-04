@@ -1,0 +1,38 @@
+tire-vision-defect-inspector/
+├── README.md
+├── pyproject.toml
+├── requirements.txt
+├── Dockerfile
+├── docker-compose.yml
+├── .gitignore
+├── docs/
+│   ├── BRS.md
+│   ├── SRS.md
+│   └── ARCHITECTURE.md
+├── scripts/
+│   ├── generate_data.py
+│   └── train.py
+├── src/tvdi/
+│   ├── __init__.py
+│   ├── config.py
+│   ├── schemas.py
+│   ├── features.py
+│   ├── models.py
+│   ├── api.py
+│   ├── data/
+│   │   ├── __init__.py
+│   │   └── synthetic.py
+│   └── services/
+│       ├── __init__.py
+│       ├── vision.py
+│       ├── traceability.py
+│       ├── risk.py
+│       └── grading.py
+├── tests/
+│   ├── test_synthetic.py
+│   ├── test_features.py
+│   ├── test_models.py
+│   └── test_api.py
+├── data/.gitkeep
+├── models/.gitkeep
+└── .github/workflows/ci.yml
